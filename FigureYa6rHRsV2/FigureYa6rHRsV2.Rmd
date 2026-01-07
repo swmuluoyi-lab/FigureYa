@@ -31,11 +31,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 临床的亚组分析，我想用R做出文章里的样子。
 
-这里只从形式上复现，如果需要计算过程，请参考FigureYa90subgroup。
-
 Clinical subgroup analysis, I'd like to use R to make what it looks like in the article.
-
-It is only reproduced here formally, if you need the calculation process, please refer to FigureYa90subgroup.
 
 ![](example.png)
 
@@ -43,13 +39,13 @@ From <https://ascopubs.org/doi/full/10.1200/JCO.2017.75.6155?url_ver=Z39.88-2003
 
 ## 应用场景 Application Scenarios
 
-场景一：临床的亚组分析。例如，能从参与临床试验的那么多人当中发现EGFR抑制剂唯独对亚洲非吸烟女性有效。
+临床的亚组分析。例如，能从参与临床试验的那么多人当中发现EGFR抑制剂唯独对亚洲非吸烟女性有效。
+这里只从形式上复现。FigureYa66UnivariateCox计算了单因素 HR，其输出文件cox_output.csv可以直接对接FigureYa6rHRsV2，只需调整列名。
+。
 
-场景二：meta分析，是经典的meta分析的图。
-
-Scenario 1: Clinical subgroup analysis. For example, it was discovered that among the numerous participants in a clinical trial, EGFR inhibitors were effective only for Asian non-smoking females.
-
-Scenario 2: meta-analysis, a graph of a classic meta-analysis.
+Clinical subgroup analysis. For example, it was discovered that among the numerous participants in a clinical trial, EGFR inhibitors were effective only for Asian non-smoking females.
+It is only reproduced here formally, if you need the calculation process, please refer to FigureYa66UnivariateCox.
+The output file cox_output.csv can be used as input file for FigureYa6rHRsV2, only need to adjust the column names.
 
 ## 环境设置 Environment setup
 
