@@ -68,6 +68,8 @@ options(stringsAsFactors = FALSE) #禁止chr转成factor prohibit the conversion
 # Load modified regplot function to support non-interactive PDF generation
 source("regplot_functions_modified.R")
 source("regplot_modified.R")
+# 如果需要使用原版 regplot，请注释掉上面两行代码
+# If you need to use the original regplot, please comment out the above two lines of
 ```
 
 ## 输入文件 Input file
