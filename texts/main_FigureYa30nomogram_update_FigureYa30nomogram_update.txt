@@ -613,7 +613,7 @@ c
 type =
 'b'
 ,
-#连线的类型，可以是"p","b","o" type of line, which can be "p", "b", "o".
+#连线的类型，可以是"p","b","o" type of line, which can be “p”, “b”, “o”.
 lwd =
 2
 ,
@@ -719,26 +719,25 @@ m=
 B=
 1000
 )
-# 手动绘制 calibration 曲线，避免默认连线
-# Manually draw calibration curve to avoid default connecting lines
-plot
-(cal8[,
-c
+pdf
 (
-'mean.predicted'
+"calibration_8y.pdf"
 ,
-"KM"
-)],
-type =
-'b'
+width =
+8
 ,
-pch =
-16
-,
+height =
+8
+)
+plot
+(cal8,
 lwd =
 2
 ,
-col =
+lty =
+1
+,
+errbar.col =
 c
 (
 "#B2182B"
@@ -763,41 +762,48 @@ xlab =
 ylab =
 "Observed OS (%)"
 ,
-cex.lab=
-1.2
-,
-cex.axis=
-1
-)
-# 添加误差棒 - 使用 Hmisc::errbar 的正确参数格式
-errbar
-(
-x =
-cal8[,
-1
-],
-y =
-cal8[,
-2
-],
-yplus =
-cal8[,
-4
-],
-yminus =
-cal8[,
-3
-],
 col =
 c
 (
 "#B2182B"
 ),
+cex.lab=
+1.2
+,
+cex.axis=
+1
+,
+cex.main=
+1.2
+,
+cex.sub=
+0.6
+)
+lines
+(cal8[,
+c
+(
+'mean.predicted'
+,
+"KM"
+)],
+type=
+'b'
+,
 lwd =
 2
 ,
-lty =
-1
+col =
+c
+(
+"#B2182B"
+),
+pch =
+16
+)
+mtext
+(
+""
 )
 box
 (
@@ -821,6 +827,8 @@ c
 (
 "#224444"
 ))
+dev.off
+()
 8.3
 同时展示两条curve
 Show two curves at the same time
