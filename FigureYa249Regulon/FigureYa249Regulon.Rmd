@@ -193,7 +193,20 @@ stopCluster(getOption("cluster")) # 关闭并行计算 # Turn off parallel compu
 # 计算DPI-filtered regulatory network
 # Calculate the DPI-filtered regulatory network
 # Data processing inequality filtering eliminated the weakest associations in triangles of two regulators and common targets
-rtni_hepg2_oa <- tni.dpi.filter(rtni_hepg2_oa, eps = 0, sizeThreshold = TRUE, minRegulonSize = 15)
+# 小样本（例如本示例仅6个样本）可能出现没有可用于DPI三角过滤的边，导致warning；这里做保护性处理
+# In small-sample datasets (e.g., 6 samples in this example), there may be no valid triangles for DPI filtering.
+# We therefore apply a guarded call and fall back to the unfiltered network if DPI filtering cannot be applied.
+dpi_filtered <- try(
+  suppressWarnings(
+    tni.dpi.filter(rtni_hepg2_oa, eps = 0, sizeThreshold = TRUE, minRegulonSize = 15)
+  ),
+  silent = TRUE
+)
+if (!inherits(dpi_filtered, "try-error")) {
+  rtni_hepg2_oa <- dpi_filtered
+} else {
+  message("DPI filter skipped: no valid edges/triangles for this dataset; continue with permutation/bootstrap-stable network.")
+}
 
 # 保存TNI对象以便后续分析
 # Save the TNI object for later analysis
