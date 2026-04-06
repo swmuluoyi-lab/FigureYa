@@ -196,9 +196,10 @@ stopCluster(getOption("cluster")) # 关闭并行计算 # Turn off parallel compu
 # 小样本（例如本示例仅6个样本）可能出现没有可用于DPI三角过滤的边，导致warning；这里做保护性处理
 # In small-sample datasets (e.g., 6 samples in this example), there may be no valid triangles for DPI filtering.
 # We therefore apply a guarded call and fall back to the unfiltered network if DPI filtering cannot be applied.
+min_regulon_size <- 5
 dpi_filtered <- try(
   suppressWarnings(
-    tni.dpi.filter(rtni_hepg2_oa, eps = 0, sizeThreshold = TRUE, minRegulonSize = 15)
+    tni.dpi.filter(rtni_hepg2_oa, eps = 0, sizeThreshold = TRUE, minRegulonSize = min_regulon_size)
   ),
   silent = TRUE
 )
@@ -216,7 +217,20 @@ save(rtni_hepg2_oa, file="rtni_hepg2_oa.RData")
 # 计算每个样本的regulon活性
 # Calculate the regulon activity for each sample
 # Individual regulon activity was estimated by two-sided GSEA
-rtnigsea_hepg2_oa <- tni.gsea2(rtni_hepg2_oa, regulatoryElements = regulatoryElements)
+rtnigsea_hepg2_oa <- try(
+  tni.gsea2(rtni_hepg2_oa, regulatoryElements = regulatoryElements, minRegulonSize = min_regulon_size),
+  silent = TRUE
+)
+if (inherits(rtnigsea_hepg2_oa, "try-error")) {
+  message("GSEA retry with minRegulonSize=1 for small-sample dataset...")
+  rtnigsea_hepg2_oa <- try(
+    tni.gsea2(rtni_hepg2_oa, regulatoryElements = regulatoryElements, minRegulonSize = 1),
+    silent = TRUE
+  )
+}
+if (inherits(rtnigsea_hepg2_oa, "try-error")) {
+  stop("tni.gsea2 failed after fallback. Please inspect regulon network size or increase sample size.")
+}
 hepg2_regact <- tni.get(rtnigsea_hepg2_oa, what = "regulonActivity")
 
 # 保存活性对象
