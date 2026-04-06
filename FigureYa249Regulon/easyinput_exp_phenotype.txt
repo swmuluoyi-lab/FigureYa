@@ -1,0 +1,7 @@
+Sample	Group
+Treat_1	Treat
+Treat_2	Treat
+Treat_3	Treat
+Model_1	Model
+Model_2	Model
+Model_3	Model
