@@ -122,11 +122,11 @@ standarize.fun <- function(indata=NULL, halfwidth=NULL, centerFlag=T, scaleFlag=
 
 # 输入文件
 
-easyinput_tcga_tpm.txt，表达矩阵
+exp.mtx.txt，表达矩阵
 
-easyinput_tcga_phenotype.txt，每个样本对应的亚型信息，这里有四个亚型。
+easyinput_exp_phenotype.txt，每个样本对应的分组信息（Treat/Model）。
 
-easyinput_regulon.txt，运行regulon分析只需要基因的名字。
+easyinput_regulon.txt，调整为脂质代谢常见的50种regulon基因。
 
 - 热图上中下三部分各对应一类基因（转录因子、chromatin remodelling regulator、甲基化）。
 - 这里以最上面的23个转录因子为例，基因名出自<https://www.sciencedirect.com/science/article/pii/S0092867417310565?via%3Dihub>。
@@ -135,11 +135,11 @@ easyinput_regulon.txt，运行regulon分析只需要基因的名字。
 
 # Input files
 
-easyinput_tcga_tpm.txt, the expression matrix。
+exp.mtx.txt, the expression matrix。
 
-easyinput_tcga_phenotype.txt, the subtype information corresponding to each sample, there are four subtypes here.
+easyinput_exp_phenotype.txt, the group information corresponding to each sample (Treat/Model).
 
-easyinput_regulon.txt, only the name of the gene is required to run the regulon analysis.
+easyinput_regulon.txt, adjusted to 50 commonly used lipid-metabolism-related regulon genes.
 
 - The upper, middle, and lower parts of the heatmap correspond to a class of genes (transcription factor, chromatin remodelling regulator, methylation).
 - Here are the top 23 transcription factors as an example, and the gene names are from <https://www.sciencedirect.com/science/article/pii/S0092867417310565?via=ihub>。
@@ -147,10 +147,10 @@ easyinput_regulon.txt, only the name of the gene is required to run the regulon 
 - For your own data, you can dig your own or obtain specific regulators of interest in tissues, diseases, and even developmental periods from the literature. **
 
 ```{r}
-# 加载基因表达以及样本数值信息
-# Load gene expression and sample value information
-tcgaBLCA <- read.table("easyinput_tcga_tpm.txt",sep = "\t",row.names = 1,check.names = F,stringsAsFactors = F,header = T)
-pheno <- read.table("easyinput_tcga_phenotype.txt",sep = "\t",row.names = 1,check.names = F,stringsAsFactors = F,header = T)
+# 加载基因表达以及样本分组信息
+# Load gene expression and sample group information
+tcgaBLCA <- read.table("exp.mtx.txt",sep = "\t",row.names = 1,check.names = F,stringsAsFactors = F,header = T)
+pheno <- read.table("easyinput_exp_phenotype.txt",sep = "\t",row.names = 1,check.names = F,stringsAsFactors = F,header = T)
 
 # 加载MIBC特异性的调控子
 # Load MIBC-specific regulators
@@ -219,19 +219,20 @@ save(MIBC_regact,file = "MIBC_regact.RData")
 (load("MIBC_regact.RData"))
 
 # 设置颜色
-# Set the color
-clust.col <- c("#DD492E","#40548A","#32A087","#EC7D21")
+# Set colors according to groups
+group_levels <- unique(pheno$Group)
+palette_base <- c("#DD492E","#40548A","#32A087","#EC7D21","#7B6FD0","#2A9D8F")
+clust.col <- setNames(palette_base[seq_along(group_levels)], group_levels)
 blue <- "#5bc0eb"
 gold <- "#ECE700"
 
 plotdata <- standarize.fun(t(MIBC_regact$differential),halfwidth = 1.5) # 标准化regulon的活性 # Normalize the activity of regulon 
-annCol.tcga <- pheno[order(pheno$CMOIC),,drop = F] # 构建样本注释信息，并对亚型进行排序 # Construct sample annotation information and sort subtypes
+annCol.tcga <- pheno[order(pheno$Group),,drop = F] # 构建样本注释信息，并对分组进行排序 # Construct sample annotation information and sort groups
 annColors.tcga <- list()
-annColors.tcga[["CMOIC"]] <- c("CS1" = clust.col[1],
-                               "CS2" = clust.col[2],
-                               "CS3" = clust.col[3],
-                               "CS4" = clust.col[4])
+annColors.tcga[["Group"]] <- clust.col
 hcg <- hclust(distanceMatrix(as.matrix(MIBC_regact$differential[rownames(annCol.tcga),]), "euclidean"), "ward.D")
+group_counts <- cumsum(table(annCol.tcga$Group))
+gap_positions <- if (length(group_counts) > 1) group_counts[-length(group_counts)] else NULL
 hm <- pheatmap(plotdata[hcg$order,rownames(annCol.tcga)],
                border_color = NA, # 热图单元格无边框 # Heatmap cells have no borders
                color = colorpanel(64,low=blue,mid = "black",high=gold),
@@ -239,12 +240,12 @@ hm <- pheatmap(plotdata[hcg$order,rownames(annCol.tcga)],
                cluster_cols = F, # 列聚类 # Column clustering
                show_rownames = T, # 显示行名 # Show the rowname
                show_colnames = F, # 不显示列名 # Column names are not displayed
-               gaps_col = cumsum(table(annCol.tcga$CMOIC))[1:3], # 亚型分割 # Subtype segmentation
+               gaps_col = gap_positions, # 分组分割 # Group segmentation
                cellwidth = 0.8, # 固定单元格宽度 # Fixed cell width
                cellheight = 10, # 固定单元格高度 # Fixed cell height
                name = "MIBC Regulon", # 图例名字 # Legend name
-               annotation_col = annCol.tcga[,"CMOIC",drop = F], # 样本注释 # Sample annotations
-               annotation_colors = annColors.tcga["CMOIC"]) # 样本注释的对应颜色 # The color of the sample annotation
+               annotation_col = annCol.tcga[,"Group",drop = F], # 样本注释 # Sample annotations
+               annotation_colors = annColors.tcga["Group"]) # 样本注释的对应颜色 # The color of the sample annotation
  
 pdf("regulon heatmap.pdf", width = 8,height = 6)
 draw(hm) # 输出热图 # Output heatmap
